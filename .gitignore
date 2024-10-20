@@ -1,0 +1,63 @@
+# Ignore binary files
+*.out
+*.exe
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+
+# Ignore build directories (common in CMake or Makefile projects)
+build/
+bin/
+Debug/
+Release/
+
+# Ignore C++ cache and temporary files
+*.gch
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignore OS-specific files
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Ignore CMake cache
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore Visual Studio files
+.vscode/
+.vs/
+*.vcxproj
+*.sln
+
+# Ignore IDE/editor specific files
+.idea/
+*.iml
+*.code-workspace
+
+# Ignore generated documentation
+docs/
+*.dox
+*.dvi
+*.pdf
+
+# Ignore git submodules
+.gitmodules
+
+# Ignore user settings
+*.user
+*.opendb
+*.autosave
