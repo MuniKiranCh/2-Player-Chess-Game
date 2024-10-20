@@ -7,6 +7,9 @@
 *.so
 *.dylib
 
+# Ignore Visual Studio Code settings and workspace files
+.vscode/
+
 # Ignore build directories (common in CMake or Makefile projects)
 build/
 bin/
