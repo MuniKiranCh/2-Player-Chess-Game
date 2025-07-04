@@ -1,0 +1,10 @@
+GAME_STATE
+CurrentPlayer: White
+MoveCount: 2
+AIEnabled: true
+AIDifficulty: 4
+AIPlaysAsWhite: false
+FEN: r1bqkbnr/pppppppp/n7/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2
+MOVE_HISTORY
+e2 e4
+b8 a6

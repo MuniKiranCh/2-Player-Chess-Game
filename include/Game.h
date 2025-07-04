@@ -29,45 +29,61 @@ public:
     void displayHelp() const;
     void setAIOpponent(bool enabled, AIDifficulty difficulty = AIDifficulty::RANDOM);
     void setAIPlaysAs(bool playsAsWhite);
+    
+    // Save/Load methods
+    bool saveGame(const std::string& filename) const;
+    bool loadGame(const std::string& filename);
+    bool exportPGN(const std::string& filename) const;
+    bool importPGN(const std::string& filename);
+    std::string getFEN() const;
+    bool setFEN(const std::string& fen);
+    void displaySaveLoadHelp() const;
 
 private:
     Board board;
-    bool currentPlayer; // true for white, false for black
-    std::vector<Move> moveHistory;
+    bool currentPlayer; // true = white, false = black
     int moveCount;
+    std::vector<Move> moveHistory;
     
-    // AI settings
+    // AI variables
     bool aiEnabled;
     AIDifficulty aiDifficulty;
     bool aiPlaysAsWhite;
     
+    // Helper methods
     bool makeMove(int x1, int y1, int x2, int y2);
-    bool processInput(const std::string& input);
-    void displayGameStatus() const;
+    bool isValidMove(int x1, int y1, int x2, int y2) const;
     void displayMoveHistory() const;
+    void displayGameStatus() const;
+    void showLegalMoves(int x, int y) const;
     bool handleSpecialCommands(const std::string& input);
-    std::string getMoveNotation(int x1, int y1, int x2, int y2) const;
+    void makeAIMove();
+    int evaluatePosition() const;
+    int minimax(Board& board, int depth, int alpha, int beta, bool maximizingPlayer) const;
+    std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> getAllLegalMoves(bool forWhite) const;
+    void displayAISettings() const;
+    
+    // Chess notation helpers
     std::string getChessNotation(int x, int y) const;
     std::pair<int, int> parseChessNotation(const std::string& notation) const;
-    std::pair<std::pair<int, int>, std::pair<int, int>> parseAlgebraicNotation(const std::string& notation) const;
+    
+    // Game state methods
+    bool isGameEnded() const;
+    void announceGameEnd() const;
+    
+    // AI helper methods
+    std::pair<std::pair<int, int>, std::pair<int, int>> getRandomMove() const;
+    std::pair<std::pair<int, int>, std::pair<int, int>> getGreedyMove() const;
+    std::pair<std::pair<int, int>, std::pair<int, int>> getMinimaxMove(int depth) const;
+    int getPieceValue(char piece) const;
+    
+    // Move parsing methods
     std::pair<std::pair<int, int>, std::pair<int, int>> findPawnMove(int destX, int destY) const;
     std::pair<std::pair<int, int>, std::pair<int, int>> findPieceMove(char pieceType, int destX, int destY) const;
     std::pair<std::pair<int, int>, std::pair<int, int>> findPawnCapture(int fromFile, int destX, int destY) const;
     std::pair<std::pair<int, int>, std::pair<int, int>> parseCastlingNotation(const std::string& notation) const;
-    void showLegalMoves(int x, int y) const;
-    bool isGameEnded() const;
-    void announceGameEnd() const;
-    
-    // AI methods
-    void makeAIMove();
-    std::pair<std::pair<int, int>, std::pair<int, int>> getRandomMove() const;
-    std::pair<std::pair<int, int>, std::pair<int, int>> getGreedyMove() const;
-    std::pair<std::pair<int, int>, std::pair<int, int>> getMinimaxMove(int depth) const;
-    int evaluatePosition() const;
-    int minimax(Board& board, int depth, int alpha, int beta, bool maximizingPlayer) const;
-    std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> getAllLegalMoves(bool forWhite) const;
-    int getPieceValue(char piece) const;
-    void displayAISettings() const;
+    std::pair<std::pair<int, int>, std::pair<int, int>> parseAlgebraicNotation(const std::string& notation) const;
+    bool processInput(const std::string& input);
 };
 
 #endif

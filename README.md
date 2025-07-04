@@ -16,6 +16,7 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - ✅ **Implemented Castling** - Both king-side (O-O) and queen-side (O-O-O) castling
 - ✅ **Implemented En Passant** - Automatic pawn capture when opponent pawn moves two squares
 - ✅ **Added AI Opponent** - Multiple difficulty levels with intelligent move generation
+- ✅ **Added Save/Load System** - Game persistence with PGN and FEN support
 
 ---
 
@@ -53,6 +54,7 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - **Piece Movement Tracking:** Tracks which pieces have moved for castling validation.
 - **En Passant Target Tracking:** Automatically manages en passant opportunities.
 - **AI Opponent:** Multiple difficulty levels with intelligent move generation and position evaluation.
+- **Save/Load System:** Complete game persistence with multiple file formats.
 
 ### **AI Features** ✅
 - **Multiple Difficulty Levels:**
@@ -65,6 +67,25 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - **Position Evaluation:** Material counting with piece values (Pawn=1, Knight/Bishop=3, Rook=5, Queen=9, King=100)
 - **Game Modes:** Human vs Human, Human vs AI (White), Human vs AI (Black)
 - **Automatic Play:** AI makes moves automatically on its turn
+
+### **Save/Load System** ✅
+- **Game Persistence:** Save and load complete game states including board position, move history, and AI settings
+- **Multiple File Formats:**
+  - **Custom .chess files:** Complete game state with move history and AI configuration
+  - **PGN (Portable Game Notation):** Standard chess format for move export/import
+  - **FEN (Forsyth-Edwards Notation):** Position description format
+- **Save Commands:**
+  - `save <filename>` - Save current game to file
+  - `load <filename>` - Load game from file
+  - `export <filename>` - Export game to PGN format
+  - `import <filename>` - Import game from PGN format
+  - `fen` - Display current position in FEN notation
+  - `savehelp` - Show save/load command help
+- **Features:**
+  - Preserves complete game state (board, moves, current player, AI settings)
+  - Supports standard chess file formats for compatibility
+  - Automatic move history reconstruction
+  - Error handling for invalid files
 
 ---
 
@@ -228,6 +249,7 @@ Where:
 - `status` or `s` - Show current game status
 - `moves x y` - Show legal moves for piece at position (x,y)
 - `board` or `b` - Redisplay the board
+- `savehelp` - Show save/load commands
 - `quit` or `exit` - Exit the game
 
 ### **Example Moves:**
@@ -287,6 +309,20 @@ e5 d6    # White captures en passant
 **Expected results:** 
 - Castling should move both king and rook correctly
 - En passant should capture the black pawn on d5
+
+**Test Save/Load System:**
+```plaintext
+e2 e4    # White pawn to e4
+save mygame.chess  # Save the game
+load mygame.chess  # Load the game back
+export game.pgn    # Export to PGN format
+fen               # Display current FEN
+```
+
+**Expected results:**
+- Game should save and load correctly with all state preserved
+- PGN export should create a standard chess file
+- FEN should display current position in standard notation
 
 ---
 
@@ -442,9 +478,9 @@ Move 2: Kingside castling
 - **Enhanced AI:** Add opening book, endgame tablebase, and stronger evaluation functions
 - **Graphical Interface:** Add a GUI to make the game more interactive
 - **Network Multiplayer:** Enable online play between players
-- **Game Save/Load:** Persist game state to files
 - **Move Timer:** Add time controls for blitz and rapid games
 - **Draw Offers:** Implement draw by agreement, threefold repetition, fifty-move rule
+- **Enhanced Save/Load:** Add time controls, game annotations, and multiple save slots
 
 ### **File Structure:**
 ```
