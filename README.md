@@ -15,6 +15,7 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - ✅ **Added debug mode** for troubleshooting game states
 - ✅ **Implemented Castling** - Both king-side (O-O) and queen-side (O-O-O) castling
 - ✅ **Implemented En Passant** - Automatic pawn capture when opponent pawn moves two squares
+- ✅ **Added AI Opponent** - Multiple difficulty levels with intelligent move generation
 
 ---
 
@@ -51,6 +52,19 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - **Game Statistics:** Tracks total moves and provides game summary.
 - **Piece Movement Tracking:** Tracks which pieces have moved for castling validation.
 - **En Passant Target Tracking:** Automatically manages en passant opportunities.
+- **AI Opponent:** Multiple difficulty levels with intelligent move generation and position evaluation.
+
+### **AI Features** ✅
+- **Multiple Difficulty Levels:**
+  - **Random AI:** Makes completely random legal moves (easiest)
+  - **Greedy AI:** Always captures when possible and prefers material advantage
+  - **Minimax AI:** Uses minimax algorithm with alpha-beta pruning
+    - **Depth 1:** Looks 1 move ahead (medium difficulty)
+    - **Depth 2:** Looks 2 moves ahead (hard difficulty)
+    - **Depth 3:** Looks 3 moves ahead (very hard difficulty)
+- **Position Evaluation:** Material counting with piece values (Pawn=1, Knight/Bishop=3, Rook=5, Queen=9, King=100)
+- **Game Modes:** Human vs Human, Human vs AI (White), Human vs AI (Black)
+- **Automatic Play:** AI makes moves automatically on its turn
 
 ---
 
@@ -86,6 +100,11 @@ This project is a **complete command-line-based Chess Game** implemented using *
    ./chessGame_debug
    ```
 
+4. **Select Game Mode:**
+   - Choose from Human vs Human, Human vs AI (White), or Human vs AI (Black)
+   - If playing against AI, select difficulty level
+   - The game will start with your chosen configuration
+
 ---
 
 ## **How to Play**
@@ -94,6 +113,18 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - **White pieces** start at the bottom (rows 6-7) - **UPPERCASE** letters (K, Q, R, B, N, P)
 - **Black pieces** start at the top (rows 0-1) - **lowercase** letters (k, q, r, b, n, p)
 - **White always moves first**
+
+### **Game Modes:**
+1. **Human vs Human:** Traditional two-player chess game
+2. **Human vs AI (You play White):** Play against AI as White pieces
+3. **Human vs AI (You play Black):** Play against AI as Black pieces
+
+### **AI Difficulty Levels:**
+1. **Random (Easiest):** AI makes random legal moves
+2. **Greedy (Easy):** AI prioritizes captures and material advantage
+3. **Minimax Depth 1 (Medium):** AI looks 1 move ahead
+4. **Minimax Depth 2 (Hard):** AI looks 2 moves ahead
+5. **Minimax Depth 3 (Very Hard):** AI looks 3 moves ahead
 
 ### **Coordinate System:**
 ```
@@ -304,6 +335,8 @@ e5 d6    # White captures en passant
 - **Castling:** Piece movement tracking, validation logic, and notation parsing
 - **En Passant:** Target square tracking, automatic detection, and capture logic
 - **Enhanced Move Parsing:** Support for castling notation (O-O, O-O-O)
+- **AI Engine:** Multiple algorithms including random, greedy, and minimax with alpha-beta pruning
+- **Position Evaluation:** Material-based scoring system for AI decision making
 
 ### **Resume-Ready Features:**
 - **Object-Oriented Programming:** Complete class hierarchy with inheritance and polymorphism
@@ -315,6 +348,8 @@ e5 d6    # White captures en passant
 - **Game Development:** Complete chess rule implementation with state management
 - **User Interface:** Command-line interface with help system and multiple input formats
 - **Advanced Chess Rules:** Castling and En Passant implementation
+- **Artificial Intelligence:** Minimax algorithm, alpha-beta pruning, position evaluation
+- **Algorithm Complexity:** Understanding of search algorithms and optimization techniques
 
 ---
 
@@ -335,11 +370,11 @@ Move format: Use chess notation (e.g., 'e2 e4' or 'Nf3')
   +---+---+---+---+---+---+---+---+
  5 |   |   |   |   |   |   |   |   | 5
   +---+---+---+---+---+---+---+---+
- 4 |   |   |   |   |   |   |   |   | 4
+ 4 |   |   |   |   | P |   |   |   | 4
   +---+---+---+---+---+---+---+---+
  3 |   |   |   |   |   |   |   |   | 3
   +---+---+---+---+---+---+---+---+
- 2 | P | P | P | P | P | P | P | P | 2
+ 2 | P | P | P | P |   | P | P | P | 2
   +---+---+---+---+---+---+---+---+
  1 | R | N | B | Q | K | B | N | R | 1
   +---+---+---+---+---+---+---+---+
@@ -404,7 +439,7 @@ Move 2: Kingside castling
 ## **Future Improvements**  
 - **Pawn Promotion Options:** Allow choice of promotion piece (Rook, Bishop, Knight, Queen)
 - **Undo Feature:** Allow players to undo their last move
-- **AI Opponent:** Add computer player with different difficulty levels
+- **Enhanced AI:** Add opening book, endgame tablebase, and stronger evaluation functions
 - **Graphical Interface:** Add a GUI to make the game more interactive
 - **Network Multiplayer:** Enable online play between players
 - **Game Save/Load:** Persist game state to files

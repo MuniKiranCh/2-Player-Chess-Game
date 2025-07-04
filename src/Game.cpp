@@ -2,19 +2,60 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm>
+#include <random>
+#include <chrono>
 
-Game::Game() : board(), currentPlayer(true), moveCount(0) {}
+Game::Game() : board(), currentPlayer(true), moveCount(0), 
+               aiEnabled(false), aiDifficulty(AIDifficulty::RANDOM), aiPlaysAsWhite(false) {}
+
+void Game::setAIOpponent(bool enabled, AIDifficulty difficulty) {
+    aiEnabled = enabled;
+    aiDifficulty = difficulty;
+}
+
+void Game::setAIPlaysAs(bool playsAsWhite) {
+    aiPlaysAsWhite = playsAsWhite;
+}
 
 void Game::start() {
     std::cout << "=== CHESS GAME ===\n";
     std::cout << "Type 'help' for commands, 'quit' to exit\n";
     std::cout << "Move format: Use chess notation (e.g., 'e2 e4' or 'Nf3')\n\n";
     
+    // AI setup
+    if (aiEnabled) {
+        displayAISettings();
+    }
+    
     board.printBoard();
     displayGameStatus();
     
     std::string input;
     while (true) {
+        // Check if it's AI's turn
+        if (aiEnabled && currentPlayer == aiPlaysAsWhite) {
+            std::cout << (currentPlayer ? "White" : "Black") << "'s turn (AI).\n";
+            makeAIMove();
+            moveCount++;
+            board.printBoard();
+            displayGameStatus();
+            
+            if (board.isCheckmate(!currentPlayer)) {
+                std::cout << "\n🎉 CHECKMATE! 🎉\n";
+                std::cout << (currentPlayer ? "White" : "Black") << " wins the game!\n";
+                announceGameEnd();
+                break;
+            }
+            
+            if (isGameEnded()) {
+                announceGameEnd();
+                break;
+            }
+            
+            currentPlayer = !currentPlayer;
+            continue;
+        }
+        
         std::cout << (currentPlayer ? "White" : "Black") << "'s turn.\n";
         std::cout << "Enter move (e.g., 'e2 e4') or command: ";
         std::getline(std::cin, input);
@@ -348,6 +389,13 @@ void Game::displayHelp() const {
     std::cout << "  moves x y   - Show legal moves for piece at (x,y)\n";
     std::cout << "  board, b    - Redisplay the board\n";
     std::cout << "  quit, exit  - Exit the game\n";
+    
+    if (aiEnabled) {
+        std::cout << "\nAI Features:\n";
+        std::cout << "  AI opponent is enabled\n";
+        std::cout << "  AI will automatically make moves on its turn\n";
+    }
+    
     std::cout << "\nPiece symbols: K/k=King, Q/q=Queen, R/r=Rook, B/b=Bishop, N/n=Knight, P/p=Pawn\n";
     std::cout << "Uppercase = White pieces, Lowercase = Black pieces\n\n";
 }
@@ -404,4 +452,227 @@ void Game::announceGameEnd() const {
     std::cout << "Total moves: " << moveCount << "\n";
     std::cout << "Move history:\n";
     displayMoveHistory();
+}
+
+// AI Methods
+void Game::makeAIMove() {
+    std::pair<std::pair<int, int>, std::pair<int, int>> move;
+    
+    switch (aiDifficulty) {
+        case AIDifficulty::RANDOM:
+            move = getRandomMove();
+            break;
+        case AIDifficulty::GREEDY:
+            move = getGreedyMove();
+            break;
+        case AIDifficulty::MINIMAX_1:
+            move = getMinimaxMove(1);
+            break;
+        case AIDifficulty::MINIMAX_2:
+            move = getMinimaxMove(2);
+            break;
+        case AIDifficulty::MINIMAX_3:
+            move = getMinimaxMove(3);
+            break;
+        default:
+            move = getRandomMove();
+            break;
+    }
+    
+    if (move.first.first != -1) {
+        makeMove(move.first.first, move.first.second, move.second.first, move.second.second);
+        std::string from = getChessNotation(move.first.first, move.first.second);
+        std::string to = getChessNotation(move.second.first, move.second.second);
+        std::cout << "AI move: " << from << " to " << to << "\n";
+    } else {
+        std::cout << "AI couldn't find a valid move!\n";
+    }
+}
+
+std::pair<std::pair<int, int>, std::pair<int, int>> Game::getRandomMove() const {
+    auto legalMoves = getAllLegalMoves(currentPlayer);
+    
+    if (legalMoves.empty()) {
+        return {{-1, -1}, {-1, -1}};
+    }
+    
+    // Use current time as seed for random number generation
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::mt19937 gen(seed);
+    std::uniform_int_distribution<> dis(0, legalMoves.size() - 1);
+    
+    int randomIndex = dis(gen);
+    return legalMoves[randomIndex];
+}
+
+std::pair<std::pair<int, int>, std::pair<int, int>> Game::getGreedyMove() const {
+    auto legalMoves = getAllLegalMoves(currentPlayer);
+    
+    if (legalMoves.empty()) {
+        return {{-1, -1}, {-1, -1}};
+    }
+    
+    std::pair<std::pair<int, int>, std::pair<int, int>> bestMove = legalMoves[0];
+    int bestValue = -10000;
+    
+    for (const auto& move : legalMoves) {
+        // Create a temporary board to evaluate the move
+        Board tempBoard = board;
+        tempBoard.movePiece(move.first.first, move.first.second, move.second.first, move.second.second);
+        
+        int moveValue = tempBoard.evaluatePosition();
+        if (currentPlayer) {
+            moveValue = -moveValue; // AI is playing as current player
+        }
+        
+        if (moveValue > bestValue) {
+            bestValue = moveValue;
+            bestMove = move;
+        }
+    }
+    
+    return bestMove;
+}
+
+std::pair<std::pair<int, int>, std::pair<int, int>> Game::getMinimaxMove(int depth) const {
+    auto legalMoves = getAllLegalMoves(currentPlayer);
+    
+    if (legalMoves.empty()) {
+        return {{-1, -1}, {-1, -1}};
+    }
+    
+    std::pair<std::pair<int, int>, std::pair<int, int>> bestMove = legalMoves[0];
+    int bestValue = -10000;
+    
+    for (const auto& move : legalMoves) {
+        // Create a temporary board to evaluate the move
+        Board tempBoard = board;
+        tempBoard.movePiece(move.first.first, move.first.second, move.second.first, move.second.second);
+        
+        int moveValue = minimax(tempBoard, depth - 1, -10000, 10000, false);
+        
+        if (moveValue > bestValue) {
+            bestValue = moveValue;
+            bestMove = move;
+        }
+    }
+    
+    return bestMove;
+}
+
+int Game::evaluatePosition() const {
+    int score = 0;
+    
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            Piece* piece = board.getPiece(i, j);
+            if (piece) {
+                int value = getPieceValue(piece->getSymbol());
+                if (piece->isWhite()) {
+                    score += value;
+                } else {
+                    score -= value;
+                }
+            }
+        }
+    }
+    
+    return score;
+}
+
+int Game::minimax(Board& board, int depth, int alpha, int beta, bool maximizingPlayer) const {
+    if (depth == 0 || board.isCheckmate(true) || board.isCheckmate(false) || board.isStalemate(true) || board.isStalemate(false)) {
+        return board.evaluatePosition();
+    }
+    
+    if (maximizingPlayer) {
+        int maxEval = -10000;
+        auto legalMoves = getAllLegalMoves(true);
+        
+        for (const auto& move : legalMoves) {
+            Board tempBoard = board;
+            tempBoard.movePiece(move.first.first, move.first.second, move.second.first, move.second.second);
+            
+            int eval = minimax(tempBoard, depth - 1, alpha, beta, false);
+            maxEval = std::max(maxEval, eval);
+            alpha = std::max(alpha, eval);
+            
+            if (beta <= alpha) {
+                break; // Alpha-beta pruning
+            }
+        }
+        return maxEval;
+    } else {
+        int minEval = 10000;
+        auto legalMoves = getAllLegalMoves(false);
+        
+        for (const auto& move : legalMoves) {
+            Board tempBoard = board;
+            tempBoard.movePiece(move.first.first, move.first.second, move.second.first, move.second.second);
+            
+            int eval = minimax(tempBoard, depth - 1, alpha, beta, true);
+            minEval = std::min(minEval, eval);
+            beta = std::min(beta, eval);
+            
+            if (beta <= alpha) {
+                break; // Alpha-beta pruning
+            }
+        }
+        return minEval;
+    }
+}
+
+std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> Game::getAllLegalMoves(bool forWhite) const {
+    std::vector<std::pair<std::pair<int, int>, std::pair<int, int>>> legalMoves;
+    
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            Piece* piece = board.getPiece(i, j);
+            if (piece && piece->isWhite() == forWhite) {
+                auto moves = board.getLegalMoves(i, j);
+                for (const auto& move : moves) {
+                    legalMoves.push_back({{i, j}, move});
+                }
+            }
+        }
+    }
+    
+    return legalMoves;
+}
+
+int Game::getPieceValue(char piece) const {
+    switch (toupper(piece)) {
+        case 'P': return 1;   // Pawn
+        case 'N': return 3;   // Knight
+        case 'B': return 3;   // Bishop
+        case 'R': return 5;   // Rook
+        case 'Q': return 9;   // Queen
+        case 'K': return 100; // King
+        default: return 0;
+    }
+}
+
+void Game::displayAISettings() const {
+    std::cout << "=== AI OPPONENT ENABLED ===\n";
+    std::cout << "AI plays as: " << (aiPlaysAsWhite ? "White" : "Black") << "\n";
+    std::cout << "Difficulty: ";
+    
+    switch (aiDifficulty) {
+        case AIDifficulty::RANDOM:
+            std::cout << "Random (Easiest)";
+            break;
+        case AIDifficulty::GREEDY:
+            std::cout << "Greedy (Easy)";
+            break;
+        case AIDifficulty::MINIMAX_1:
+            std::cout << "Minimax Depth 1 (Medium)";
+            break;
+        case AIDifficulty::MINIMAX_2:
+            std::cout << "Minimax Depth 2 (Hard)";
+            break;
+        case AIDifficulty::MINIMAX_3:
+            std::cout << "Minimax Depth 3 (Very Hard)";
+            break;
+    }
+    std::cout << "\n\n";
 }

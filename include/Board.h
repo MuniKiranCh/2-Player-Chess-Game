@@ -44,6 +44,9 @@ public:
     void setEnPassantTarget(int x, int y);
     std::pair<int, int> getEnPassantTarget() const;
     void clearEnPassantTarget();
+    
+    // AI evaluation
+    int evaluatePosition() const;
 
 private:
     std::array<std::array<Piece*, 8>, 8> board;

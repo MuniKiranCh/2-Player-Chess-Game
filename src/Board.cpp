@@ -476,3 +476,34 @@ void Board::clearEnPassantTarget() {
 void Board::recordPieceMovement(int x, int y) {
     movedPieces.insert({x, y});
 }
+
+int Board::evaluatePosition() const {
+    int score = 0;
+    
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            Piece* piece = board[i][j];
+            if (piece) {
+                int value = 0;
+                char symbol = piece->getSymbol();
+                
+                switch (toupper(symbol)) {
+                    case 'P': value = 1; break;   // Pawn
+                    case 'N': value = 3; break;   // Knight
+                    case 'B': value = 3; break;   // Bishop
+                    case 'R': value = 5; break;   // Rook
+                    case 'Q': value = 9; break;   // Queen
+                    case 'K': value = 100; break; // King
+                }
+                
+                if (piece->isWhite()) {
+                    score += value;
+                } else {
+                    score -= value;
+                }
+            }
+        }
+    }
+    
+    return score;
+}
