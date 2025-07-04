@@ -4,19 +4,26 @@
 Pawn::Pawn(bool isWhite) : Piece(isWhite) {}
 
 bool Pawn::isValidMove(int x1, int y1, int x2, int y2, const Board& board) const {
-    int direction = isWhite() ? 1 : -1; // White moves up, black moves down
+    int direction = isWhite() ? -1 : 1; // White moves up (decreasing row), black moves down (increasing row)
 
-    // Normal move
+    // Normal move (one square forward)
     if (x2 == x1 + direction && y1 == y2) {
-        return true;
+        return board.getPiece(x2, y2) == nullptr; // Destination must be empty
     }
+    
     // First move can move two squares
-    if ((isWhite() && x1 == 1 && x2 == 3 && y1 == y2) || (isWhite() == false && x1 == 6 && x2 == 4 && y1 == y2)) {
-        return true;
+    if ((isWhite() && x1 == 6 && x2 == 4 && y1 == y2) || 
+        (!isWhite() && x1 == 1 && x2 == 3 && y1 == y2)) {
+        // Check if both squares are empty
+        int middleX = isWhite() ? 5 : 2;
+        return board.getPiece(middleX, y1) == nullptr && 
+               board.getPiece(x2, y2) == nullptr;
     }
+    
     // Capture move (diagonal)
     if (x2 == x1 + direction && abs(y2 - y1) == 1) {
-        return board.getPiece(x2, y2) != nullptr; // Must capture an opponent piece
+        Piece* destPiece = board.getPiece(x2, y2);
+        return destPiece != nullptr && destPiece->isWhite() != isWhite(); // Must capture opponent piece
     }
 
     return false; // Invalid move

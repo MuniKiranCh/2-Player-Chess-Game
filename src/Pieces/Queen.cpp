@@ -4,11 +4,19 @@
 Queen::Queen(bool isWhite) : Piece(isWhite) {}
 
 bool Queen::isValidMove(int x1, int y1, int x2, int y2, const Board& board) const {
-    // Check for straight (Rook-like) and diagonal (Bishop-like) moves
-    if (x1 == x2 || y1 == y2 || abs(x2 - x1) == abs(y2 - y1)) {
-        return !isPathBlocked(x1, y1, x2, y2, board); // Ensure the path is not blocked
+    // Queen moves in straight lines (like rook) or diagonally (like bishop)
+    if (x1 != x2 && y1 != y2 && abs(x2 - x1) != abs(y2 - y1)) {
+        return false;
     }
-    return false; // Invalid move for Queen
+    
+    // Check if destination has own piece
+    Piece* destPiece = board.getPiece(x2, y2);
+    if (destPiece && destPiece->isWhite() == isWhite()) {
+        return false;
+    }
+    
+    // Check if path is blocked
+    return !isPathBlocked(x1, y1, x2, y2, board);
 }
 
 char Queen::getSymbol() const {

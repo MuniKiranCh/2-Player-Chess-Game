@@ -4,22 +4,47 @@
 # **Chess Game in C++ (OOP)**  
 
 ## **Overview**  
-This project is a **command-line-based Chess Game** implemented using **Object-Oriented Programming (OOP) principles in C++**. The game includes all essential chess functionalities such as piece movement, turn-based play, and input validation. It serves as a fun way to play chess directly from the terminal and provides a simple way to practice C++ OOP concepts.
+This project is a **complete command-line-based Chess Game** implemented using **Object-Oriented Programming (OOP) principles in C++**. The game includes all essential chess functionalities such as piece movement, turn-based play, check detection, checkmate detection, stalemate detection, and comprehensive input validation. It serves as a fun way to play chess directly from the terminal and provides an excellent demonstration of C++ OOP concepts and game logic implementation.
+
+**Latest Updates:**
+- ✅ **Fixed coordinate system** - White pieces at bottom, Black pieces at top
+- ✅ **Enhanced chess notation support** - Supports `e2 e4`, `Nf3`, `Qxf7` formats
+- ✅ **Fixed checkmate detection** - Properly detects and announces checkmate
+- ✅ **Removed # symbols** from empty squares for cleaner display
+- ✅ **Improved pawn movement logic** - Correct direction and promotion
+- ✅ **Added debug mode** for troubleshooting game states
 
 ---
 
 ## **Features**  
+### **Core Chess Rules** ✅
 - **Object-Oriented Design:** The game is built using C++ classes for each chess piece and game logic.  
 - **Chessboard Setup:** Standard 8x8 chessboard with proper initial placement of pieces.  
-- **Turn-based Gameplay:** Alternating turns between **White** and **Black** players.  
-- **Move Validation:** Ensures that:
+- **Turn-based Gameplay:** Alternating turns between **White** and **Black** players.
+- **Complete Move Validation:** Ensures that:
   - Players move only their own pieces.
   - Moves follow the rules for each piece (e.g., pawns move forward, rooks in straight lines).
   - Checks if a move is valid on the board boundaries.
+  - Prevents moves that would leave the player's own king in check.
+  - Validates piece capture logic (can only capture opponent pieces).
+- **Check Detection:** Detects when a king is in check and prevents illegal moves.
+- **Checkmate Detection:** Automatically detects checkmate and ends the game.
+- **Stalemate Detection:** Detects stalemate situations and declares a draw.
+- **Pawn Promotion:** Automatically promotes pawns to Queens when reaching the opposite end.
+
+### **Enhanced User Experience** ✅
 - **Display Board:** The current state of the board is displayed after each move.
-- **Win Detection:** Can detect **Checkmate** and **Stalemate** (optional for further development).  
+- **Game Status Display:** Shows check, checkmate, and stalemate status.
+- **Move History:** Tracks and displays all moves made during the game.
+- **Legal Move Display:** Shows all legal moves for any piece on the board.
 - **Input-based Interaction:** Players input moves in the form of coordinates from the terminal.
+- **Command System:** Special commands for help, history, status, and legal moves.
+- **Error Handling:** Comprehensive error messages for invalid moves and inputs.
+
+### **Advanced Features** ✅
+- **Memory Management:** Proper memory allocation and deallocation with copy constructors and destructors.
 - **Extensible Code Structure:** Easy to add more rules or extend functionality, such as Castling or En Passant.
+- **Game Statistics:** Tracks total moves and provides game summary.
 
 ---
 
@@ -27,122 +52,328 @@ This project is a **command-line-based Chess Game** implemented using **Object-O
 
 ### **Prerequisites**  
 - **C++ compiler** (GCC/Clang or MSVC)  
+- **C++11 or later** support
 
 ### **Build Instructions**
 
 1. **Clone the repository**:  
    ```bash
    git clone <repository_url>
-   cd ChessGame
+   cd 2-Player-Chess-Game
    ```
 
-2. **Compile using g++ (optional method)**:  
+2. **Compile using g++**:  
    ```bash
-   g++ src/*.cpp src/Pieces/*.cpp -o chessGame
+   # Standard version
+   g++ -std=c++11 -I include src/*.cpp src/Pieces/*.cpp -o chessGame
+   
+   # Debug version (with additional output)
+   g++ -std=c++11 -I include src/*.cpp src/Pieces/*.cpp -o chessGame_debug
    ```
 
 3. **Run the game**:  
    ```bash
+   # Standard version
    ./chessGame
+   
+   # Debug version
+   ./chessGame_debug
    ```
 
 ---
 
 ## **How to Play**
 
-1. **Starting the game:**  
-   - The game starts with the chessboard displayed, and it’s **White's turn** to move first.
+### **Game Setup:**
+- **White pieces** start at the bottom (rows 6-7) - **UPPERCASE** letters (K, Q, R, B, N, P)
+- **Black pieces** start at the top (rows 0-1) - **lowercase** letters (k, q, r, b, n, p)
+- **White always moves first**
 
-2. **Input Move Format:**  
-   - Players will input **four integers** in the format:
-     ```plaintext
-     x1 y1 x2 y2
-     ```
-     Where:
-     - `(x1, y1)` is the **source** coordinate (where the piece is).
-     - `(x2, y2)` is the **destination** coordinate (where the piece moves to).
+### **Coordinate System:**
+```
+   a   b   c   d   e   f   g   h
+ +---+---+---+---+---+---+---+---+
+8| r | n | b | q | k | b | n | r | 8  ← Row 0 (Black pieces)
+ +---+---+---+---+---+---+---+---+
+7| p | p | p | p | p | p | p | p | 7  ← Row 1 (Black pawns)
+ +---+---+---+---+---+---+---+---+
+6|   |   |   |   |   |   |   |   | 6  ← Row 2
+ +---+---+---+---+---+---+---+---+
+5|   |   |   |   |   |   |   |   | 5  ← Row 3
+ +---+---+---+---+---+---+---+---+
+4|   |   |   |   |   |   |   |   | 4  ← Row 4
+ +---+---+---+---+---+---+---+---+
+3|   |   |   |   |   |   |   |   | 3  ← Row 5
+ +---+---+---+---+---+---+---+---+
+2| P | P | P | P | P | P | P | P | 2  ← Row 6 (White pawns)
+ +---+---+---+---+---+---+---+---+
+1| R | N | B | Q | K | B | N | R | 1  ← Row 7 (White pieces)
+ +---+---+---+---+---+---+---+---+
+   a   b   c   d   e   f   g   h
+```
 
-3. **Example Moves:**
-   - **White moves pawn from (1,0) to (2,0):**
-     ```plaintext
-     1 0 2 0
-     ```
-   - **Black moves pawn from (6,1) to (5,1):**
-     ```plaintext
-     6 1 5 1
-     ```
+### **Input Move Format:**  
+The game supports multiple input formats:
 
-4. **Game Flow:**  
-   - The game alternates between **White** and **Black** turns.
-   - If a move is invalid, the program will notify the player and ask for another move.
+**A. Chess Notation (Recommended):**
+```plaintext
+e2 e4          # Pawn from e2 to e4
+Nf3            # Knight to f3
+Qxf7           # Queen captures on f7
+```
 
-5. **Endgame:**  
-   - For simplicity, the game currently allows basic gameplay. You can add **Checkmate, Stalemate, or Draw detection** if needed.
+**B. Algebraic Notation:**
+```plaintext
+e4             # Pawn to e4 (auto-finds which pawn)
+Nf3            # Knight to f3 (auto-finds which knight)
+exd5           # Pawn on e-file captures on d5
+```
+
+**C. Numeric Coordinates (Alternative):**
+```plaintext
+6 4 4 4        # From e2 to e4
+```
+Where:
+- `(x1, y1)` is the **source** coordinate (where the piece is).
+- `(x2, y2)` is the **destination** coordinate (where the piece moves to).
+
+### **Piece Movement Rules:**
+
+**Pawn (P/p):**
+- Moves forward only (1 square, or 2 on first move)
+- Captures diagonally forward only
+- White pawns move UP (decreasing row numbers)
+- Black pawns move DOWN (increasing row numbers)
+
+**Knight (N/n):**
+- L-shape movement (2 squares in one direction, 1 perpendicular)
+- Can jump over pieces
+
+**Bishop (B/b):**
+- Moves diagonally any number of squares
+- Cannot jump over pieces
+
+**Rook (R/r):**
+- Moves horizontally or vertically any number of squares
+- Cannot jump over pieces
+
+**Queen (Q/q):**
+- Moves in any direction (horizontal, vertical, diagonal)
+- Cannot jump over pieces
+
+**King (K/k):**
+- Moves 1 square in any direction
+- Cannot move into check
+
+### **Special Commands:**
+- `help` or `h` - Show help and commands
+- `history` or `hist` - Show move history
+- `status` or `s` - Show current game status
+- `moves x y` - Show legal moves for piece at position (x,y)
+- `board` or `b` - Redisplay the board
+- `quit` or `exit` - Exit the game
+
+### **Example Moves:**
+- **White moves pawn from e2 to e4:**
+  ```plaintext
+  e2 e4
+  ```
+- **Black moves pawn from e7 to e5:**
+  ```plaintext
+  e7 e5
+  ```
+- **White knight to f3:**
+  ```plaintext
+  Nf3
+  ```
+- **Queen captures on f7:**
+  ```plaintext
+  Qxf7
+  ```
+
+### **Game Flow:**  
+- The game alternates between **White** and **Black** turns.
+- If a move is invalid, the program will notify the player and ask for another move.
+- Check, checkmate, and stalemate are automatically detected and announced.
+
+### **Endgame:**  
+- **Checkmate:** When a king is in check and no legal moves can escape it.
+- **Stalemate:** When a player has no legal moves but is not in check.
+- **Game Statistics:** Total moves and complete move history are displayed.
+
+### **Testing Checkmate Detection (Scholar's Mate):**
+Try this 7-move sequence to test checkmate detection:
+
+```plaintext
+e2 e4    # White pawn to e4
+e7 e5    # Black pawn to e5
+Qh5      # White queen to h5
+Nc6      # Black knight to c6
+Bc4      # White bishop to c4
+Nf6      # Black knight to f6
+Qxf7     # White queen captures on f7 - CHECKMATE!
+```
+
+**Expected result:** The game should announce "CHECKMATE! White wins!" and end.
 
 ---
 
 ## **Classes and OOP Design**  
 
+### **Piece Hierarchy:**
 - **Piece (Base Class):**  
   Abstract class defining the general behavior of all chess pieces (e.g., validate movement).  
 
 - **Derived Classes:**  
   Implement specific rules for each type of piece:  
-  - `Pawn`: Can move forward, capture diagonally.
+  - `Pawn`: Can move forward, capture diagonally, and promote to Queen.
   - `Rook`: Moves in straight lines along rows or columns.
-  - `Knight`: Moves in an “L” shape.
+  - `Knight`: Moves in an "L" shape.
   - `Bishop`: Moves diagonally.
   - `Queen`: Moves in straight lines and diagonals.
   - `King`: Moves one square in any direction.
 
+### **Game Management:**
 - **Board Class:**  
-  Handles the 8x8 chessboard, including placing pieces, updating board state, and printing the current board.
+  Handles the 8x8 chessboard, including placing pieces, updating board state, printing the current board, check detection, and game state management.
 
 - **Game Class:**  
-  Manages the overall game flow, including turns, move validation, and switching between players.
+  Manages the overall game flow, including turns, move validation, switching between players, move history, and user interaction.
+
+## **Technical Implementation Highlights**
+
+### **Memory Management:**
+- Proper use of copy constructors and destructors
+- Dynamic memory allocation for pieces
+- RAII principles for resource management
+
+### **Algorithm Complexity:**
+- Check detection: O(n²) where n is board size
+- Legal move generation: O(n²) per piece
+- Game state evaluation: O(n²)
+
+### **Design Patterns:**
+- **Strategy Pattern:** Different move validation for each piece type
+- **Factory Pattern:** Piece creation and copying
+- **Observer Pattern:** Game state monitoring
+
+### **Resume-Ready Features:**
+- **Object-Oriented Programming:** Complete class hierarchy with inheritance and polymorphism
+- **Memory Management:** Copy constructors, destructors, RAII principles
+- **Algorithm Implementation:** Check detection, legal move generation, game state evaluation
+- **Error Handling:** Comprehensive input validation and error messages
+- **Design Patterns:** Strategy pattern for piece movement, Factory pattern for piece creation
+- **Data Structures:** 2D arrays, vectors, pairs for game state management
+- **Game Development:** Complete chess rule implementation with state management
+- **User Interface:** Command-line interface with help system and multiple input formats
 
 ---
 
 ## **Sample Gameplay Output**
 
 ```
-Initial Board:
-  0 1 2 3 4 5 6 7
-0 R - - - K - - R 
-1 P P P P P P P P 
-2 - - - - - - - - 
-3 - - - - - - - - 
-4 - - - - - - - - 
-5 - - - - - - - - 
-6 p p p p p p p p 
-7 r - - - k - - r 
+=== CHESS GAME ===
+Type 'help' for commands, 'quit' to exit
+Move format: Use chess notation (e.g., 'e2 e4' or 'Nf3')
+
+    a   b   c   d   e   f   g   h
+  +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | 8
+  +---+---+---+---+---+---+---+---+
+ 7 | p | p | p | p | p | p | p | p | 7
+  +---+---+---+---+---+---+---+---+
+ 6 |   |   |   |   |   |   |   |   | 6
+  +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   |   |   |   |   | 5
+  +---+---+---+---+---+---+---+---+
+ 4 |   |   |   |   |   |   |   |   | 4
+  +---+---+---+---+---+---+---+---+
+ 3 |   |   |   |   |   |   |   |   | 3
+  +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P | P | P | P | P | 2
+  +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R | 1
+  +---+---+---+---+---+---+---+---+
+    a   b   c   d   e   f   g   h
+
+Legend: K/k=King, Q/q=Queen, R/r=Rook, B/b=Bishop, N/n=Knight, P/p=Pawn
+       Uppercase=White, Lowercase=Black
 
 White's turn.
-Enter your move (x1 y1 x2 y2):
-1 0 2 0
+Enter move (e.g., 'e2 e4') or command: e2 e4
 
-  0 1 2 3 4 5 6 7
-0 R - - - K - - R 
-1 - P P P P P P P 
-2 P - - - - - - - 
-3 - - - - - - - - 
-4 - - - - - - - - 
-5 - - - - - - - - 
-6 p p p p p p p p 
-7 r - - - k - - r 
+Move 1: e2 to e4
+
+    a   b   c   d   e   f   g   h
+  +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | 8
+  +---+---+---+---+---+---+---+---+
+ 7 | p | p | p | p | p | p | p | p | 7
+  +---+---+---+---+---+---+---+---+
+ 6 |   |   |   |   |   |   |   |   | 6
+  +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   |   |   |   |   | 5
+  +---+---+---+---+---+---+---+---+
+ 4 |   |   |   |   | P |   |   |   | 4
+  +---+---+---+---+---+---+---+---+
+ 3 |   |   |   |   |   |   |   |   | 3
+  +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P |   | P | P | P | 2
+  +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R | 1
+  +---+---+---+---+---+---+---+---+
+    a   b   c   d   e   f   g   h
 
 Black's turn.
-Enter your move (x1 y1 x2 y2):
-6 1 5 1
+Enter move (e.g., 'e2 e4') or command: e7 e5
+
+Move 2: e7 to e5
+
+    a   b   c   d   e   f   g   h
+  +---+---+---+---+---+---+---+---+
+ 8 | r | n | b | q | k | b | n | r | 8
+  +---+---+---+---+---+---+---+---+
+ 7 | p | p | p | p |   | p | p | p | 7
+  +---+---+---+---+---+---+---+---+
+ 6 |   |   |   |   |   |   |   |   | 6
+  +---+---+---+---+---+---+---+---+
+ 5 |   |   |   |   | p |   |   |   | 5
+  +---+---+---+---+---+---+---+---+
+ 4 |   |   |   |   | P |   |   |   | 4
+  +---+---+---+---+---+---+---+---+
+ 3 |   |   |   |   |   |   |   |   | 3
+  +---+---+---+---+---+---+---+---+
+ 2 | P | P | P | P |   | P | P | P | 2
+  +---+---+---+---+---+---+---+---+
+ 1 | R | N | B | Q | K | B | N | R | 1
+  +---+---+---+---+---+---+---+---+
+    a   b   c   d   e   f   g   h
 ```
 
 ---
 
 ## **Future Improvements**  
-- **Checkmate & Stalemate Detection:** Detect when the game ends in a checkmate or stalemate.
-- **Castling and En Passant:** Implement special moves.
+- **Castling and En Passant:** Implement special chess moves.
 - **Undo Feature:** Allow players to undo their last move.
+- **AI Opponent:** Add computer player with different difficulty levels.
 - **Graphical Interface:** Add a GUI to make the game more interactive.
+- **Network Multiplayer:** Enable online play between players.
+- **Game Save/Load:** Persist game state to files.
+
+### **File Structure:**
+```
+2-Player-Chess-Game/
+├── include/          # Header files
+│   ├── Board.h
+│   └── Game.h
+├── src/             # Source files
+│   ├── main.cpp
+│   ├── Board.cpp
+│   ├── Game.cpp
+│   └── Pieces/      # Piece implementations
+├── README.md        # This file
+└── chessGame.exe    # Compiled executable
+```
 
 ---
 
