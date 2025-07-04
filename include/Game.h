@@ -38,6 +38,7 @@ private:
     std::pair<std::pair<int, int>, std::pair<int, int>> findPawnMove(int destX, int destY) const;
     std::pair<std::pair<int, int>, std::pair<int, int>> findPieceMove(char pieceType, int destX, int destY) const;
     std::pair<std::pair<int, int>, std::pair<int, int>> findPawnCapture(int fromFile, int destX, int destY) const;
+    std::pair<std::pair<int, int>, std::pair<int, int>> parseCastlingNotation(const std::string& notation) const;
     void showLegalMoves(int x, int y) const;
     bool isGameEnded() const;
     void announceGameEnd() const;

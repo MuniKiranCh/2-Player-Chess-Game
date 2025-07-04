@@ -54,7 +54,13 @@ void Game::start() {
 }
 
 bool Game::processInput(const std::string& input) {
-    // Try to parse as algebraic notation first (e.g., "Nf3", "e4")
+    // Try to parse as castling notation first (e.g., "O-O", "O-O-O")
+    auto castlingMove = parseCastlingNotation(input);
+    if (castlingMove.first.first != -1) {
+        return makeMove(castlingMove.first.first, castlingMove.first.second, castlingMove.second.first, castlingMove.second.second);
+    }
+    
+    // Try to parse as algebraic notation (e.g., "Nf3", "e4")
     auto move = parseAlgebraicNotation(input);
     if (move.first.first != -1) {
         return makeMove(move.first.first, move.first.second, move.second.first, move.second.second);
@@ -240,6 +246,25 @@ std::pair<std::pair<int, int>, std::pair<int, int>> Game::findPawnCapture(int fr
     return {{-1, -1}, {-1, -1}};
 }
 
+std::pair<std::pair<int, int>, std::pair<int, int>> Game::parseCastlingNotation(const std::string& notation) const {
+    // Handle castling notation: O-O (king-side) or O-O-O (queen-side)
+    if (notation == "O-O" || notation == "0-0") {
+        // King-side castling
+        int kingX = currentPlayer ? 7 : 0;
+        int kingY = 4;
+        int kingDestY = 6;
+        return {{kingX, kingY}, {kingX, kingDestY}};
+    } else if (notation == "O-O-O" || notation == "0-0-0") {
+        // Queen-side castling
+        int kingX = currentPlayer ? 7 : 0;
+        int kingY = 4;
+        int kingDestY = 2;
+        return {{kingX, kingY}, {kingX, kingDestY}};
+    }
+    
+    return {{-1, -1}, {-1, -1}}; // Not castling notation
+}
+
 void Game::displayGameStatus() const {
     // Debug: Check if the opponent is in checkmate after current player's move
     bool opponentInCheck = board.isCheck(!currentPlayer);
@@ -305,7 +330,13 @@ void Game::displayHelp() const {
     std::cout << "  e2 e4     - Pawn moves from e2 to e4\n";
     std::cout << "  Nf3       - Knight moves to f3\n";
     std::cout << "  O-O       - Kingside castle\n";
-    std::cout << "  e4 d5     - Pawn captures on d5\n";
+    std::cout << "  O-O-O     - Queenside castle\n";
+    std::cout << "  exd5      - Pawn captures on d5\n";
+    std::cout << "  Nxe5      - Knight captures on e5\n";
+    std::cout << "\nSpecial Moves:\n";
+    std::cout << "  Castling: O-O (kingside) or O-O-O (queenside)\n";
+    std::cout << "  En Passant: Automatic when capturing a pawn that just moved 2 squares\n";
+    std::cout << "  Pawn Promotion: Automatic to Queen when reaching the opposite end\n";
     std::cout << "\nCoordinate System (alternative):\n";
     std::cout << "  Files (columns): 0=a, 1=b, 2=c, 3=d, 4=e, 5=f, 6=g, 7=h\n";
     std::cout << "  Ranks (rows):    0=8, 1=7, 2=6, 3=5, 4=4, 5=3, 6=2, 7=1\n";

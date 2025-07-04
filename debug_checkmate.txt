@@ -1,2 +1,0 @@
-status
-moves 0 4 

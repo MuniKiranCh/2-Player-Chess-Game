@@ -8,11 +8,12 @@
 #include <iostream>
 #include <algorithm>
 
-Board::Board() : gameOver(false), gameStatus("ongoing") {
+Board::Board() : gameOver(false), gameStatus("ongoing"), enPassantTarget(-1, -1) {
     resetBoard();
 }
 
-Board::Board(const Board& other) : gameOver(other.gameOver), gameStatus(other.gameStatus) {
+Board::Board(const Board& other) : gameOver(other.gameOver), gameStatus(other.gameStatus), 
+                                   movedPieces(other.movedPieces), enPassantTarget(other.enPassantTarget) {
     // Initialize board with nullptr
     for (auto &row : board) {
         row.fill(nullptr);
@@ -59,6 +60,8 @@ Board& Board::operator=(const Board& other) {
         
         gameOver = other.gameOver;
         gameStatus = other.gameStatus;
+        movedPieces = other.movedPieces;
+        enPassantTarget = other.enPassantTarget;
     }
     return *this;
 }
@@ -154,6 +157,37 @@ Piece* Board::getPiece(int x, int y) const {
 }
 
 void Board::movePiece(int x1, int y1, int x2, int y2) {
+    // Handle en passant
+    if (board[x1][y1] && board[x1][y1]->getSymbol() == (board[x1][y1]->isWhite() ? 'P' : 'p')) {
+        Pawn* pawn = dynamic_cast<Pawn*>(board[x1][y1]);
+        if (pawn && pawn->isEnPassantMove(x1, y1, x2, y2, *this)) {
+            performEnPassant(x1, y1, x2, y2);
+            return;
+        }
+        
+        // Set en passant target if pawn moves two squares
+        if (abs(x2 - x1) == 2 && y1 == y2) {
+            setEnPassantTarget((x1 + x2) / 2, y1);
+        } else {
+            clearEnPassantTarget();
+        }
+    } else {
+        clearEnPassantTarget();
+    }
+    
+    // Handle castling
+    if (board[x1][y1] && board[x1][y1]->getSymbol() == (board[x1][y1]->isWhite() ? 'K' : 'k')) {
+        King* king = dynamic_cast<King*>(board[x1][y1]);
+        if (king && king->isCastlingMove(x1, y1, x2, y2)) {
+            bool isKingSide = (y2 > y1);
+            performCastling(board[x1][y1]->isWhite(), isKingSide);
+            return;
+        }
+    }
+    
+    // Record that the piece has moved (for regular moves)
+    recordPieceMovement(x1, y1);
+    
     // Handle pawn promotion
     if (board[x1][y1] && board[x1][y1]->getSymbol() == 'P' && x2 == 0) {
         // White pawn reaching the top (row 0)
@@ -306,4 +340,139 @@ bool Board::isGameOver() const {
 
 std::string Board::getGameStatus() const {
     return gameStatus;
+}
+
+// Castling methods
+bool Board::canCastle(bool isWhiteKing, bool isKingSide) const {
+    // Check if king has moved
+    if (hasKingMoved(isWhiteKing)) {
+        return false;
+    }
+    
+    // Check if rook has moved
+    if (hasRookMoved(isWhiteKing, isKingSide)) {
+        return false;
+    }
+    
+    // Check if king is in check
+    if (isCheck(isWhiteKing)) {
+        return false;
+    }
+    
+    // Check if squares between king and rook are empty
+    int kingX = isWhiteKing ? 7 : 0;
+    int kingY = 4;
+    int rookY = isKingSide ? 7 : 0;
+    
+    int startY = std::min(kingY, rookY) + 1;
+    int endY = std::max(kingY, rookY);
+    
+    for (int y = startY; y < endY; ++y) {
+        if (board[kingX][y] != nullptr) {
+            return false;
+        }
+    }
+    
+    // Check if king doesn't move through check
+    int kingDestY = isKingSide ? 6 : 2;
+    if (isSquareUnderAttack(kingX, kingY, !isWhiteKing) ||
+        isSquareUnderAttack(kingX, kingDestY, !isWhiteKing)) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool Board::performCastling(bool isWhiteKing, bool isKingSide) {
+    if (!canCastle(isWhiteKing, isKingSide)) {
+        return false;
+    }
+    
+    int kingX = isWhiteKing ? 7 : 0;
+    int kingY = 4;
+    int rookY = isKingSide ? 7 : 0;
+    
+    // Move king
+    int kingDestY = isKingSide ? 6 : 2;
+    board[kingX][kingDestY] = board[kingX][kingY];
+    board[kingX][kingY] = nullptr;
+    
+    // Move rook
+    int rookDestY = isKingSide ? 5 : 3;
+    board[kingX][rookDestY] = board[kingX][rookY];
+    board[kingX][rookY] = nullptr;
+    
+    // Record movements
+    recordPieceMovement(kingX, kingY);
+    recordPieceMovement(kingX, rookY);
+    
+    return true;
+}
+
+bool Board::hasKingMoved(bool isWhiteKing) const {
+    int kingX = isWhiteKing ? 7 : 0;
+    int kingY = 4;
+    return movedPieces.find({kingX, kingY}) != movedPieces.end();
+}
+
+bool Board::hasRookMoved(bool isWhiteKing, bool isKingSide) const {
+    int rookX = isWhiteKing ? 7 : 0;
+    int rookY = isKingSide ? 7 : 0;
+    return movedPieces.find({rookX, rookY}) != movedPieces.end();
+}
+
+// En Passant methods
+bool Board::canEnPassant(int x1, int y1, int x2, int y2) const {
+    if (enPassantTarget.first == -1) {
+        return false;
+    }
+    
+    // Check if destination is the en passant target square
+    if (x2 != enPassantTarget.first || y2 != enPassantTarget.second) {
+        return false;
+    }
+    
+    // Check if there's an opponent pawn on the same rank
+    Piece* adjacentPawn = board[x1][y2];
+    if (!adjacentPawn || adjacentPawn->getSymbol() != (board[x1][y1]->isWhite() ? 'p' : 'P') ||
+        adjacentPawn->isWhite() == board[x1][y1]->isWhite()) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool Board::performEnPassant(int x1, int y1, int x2, int y2) {
+    if (!canEnPassant(x1, y1, x2, y2)) {
+        return false;
+    }
+    
+    // Move the pawn
+    board[x2][y2] = board[x1][y1];
+    board[x1][y1] = nullptr;
+    
+    // Remove the captured pawn
+    delete board[x1][y2];
+    board[x1][y2] = nullptr;
+    
+    // Clear en passant target
+    clearEnPassantTarget();
+    
+    return true;
+}
+
+void Board::setEnPassantTarget(int x, int y) {
+    enPassantTarget = {x, y};
+}
+
+std::pair<int, int> Board::getEnPassantTarget() const {
+    return enPassantTarget;
+}
+
+void Board::clearEnPassantTarget() {
+    enPassantTarget = {-1, -1};
+}
+
+void Board::recordPieceMovement(int x, int y) {
+    movedPieces.insert({x, y});
 }

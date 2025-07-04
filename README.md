@@ -13,6 +13,8 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - ✅ **Removed # symbols** from empty squares for cleaner display
 - ✅ **Improved pawn movement logic** - Correct direction and promotion
 - ✅ **Added debug mode** for troubleshooting game states
+- ✅ **Implemented Castling** - Both king-side (O-O) and queen-side (O-O-O) castling
+- ✅ **Implemented En Passant** - Automatic pawn capture when opponent pawn moves two squares
 
 ---
 
@@ -31,6 +33,8 @@ This project is a **complete command-line-based Chess Game** implemented using *
 - **Checkmate Detection:** Automatically detects checkmate and ends the game.
 - **Stalemate Detection:** Detects stalemate situations and declares a draw.
 - **Pawn Promotion:** Automatically promotes pawns to Queens when reaching the opposite end.
+- **Castling:** Both king-side (O-O) and queen-side (O-O-O) castling with proper validation.
+- **En Passant:** Automatic pawn capture when opponent pawn moves two squares forward.
 
 ### **Enhanced User Experience** ✅
 - **Display Board:** The current state of the board is displayed after each move.
@@ -43,8 +47,10 @@ This project is a **complete command-line-based Chess Game** implemented using *
 
 ### **Advanced Features** ✅
 - **Memory Management:** Proper memory allocation and deallocation with copy constructors and destructors.
-- **Extensible Code Structure:** Easy to add more rules or extend functionality, such as Castling or En Passant.
+- **Extensible Code Structure:** Easy to add more rules or extend functionality.
 - **Game Statistics:** Tracks total moves and provides game summary.
+- **Piece Movement Tracking:** Tracks which pieces have moved for castling validation.
+- **En Passant Target Tracking:** Automatically manages en passant opportunities.
 
 ---
 
@@ -120,6 +126,8 @@ The game supports multiple input formats:
 e2 e4          # Pawn from e2 to e4
 Nf3            # Knight to f3
 Qxf7           # Queen captures on f7
+O-O            # Kingside castling
+O-O-O          # Queenside castling
 ```
 
 **B. Algebraic Notation:**
@@ -137,6 +145,22 @@ Where:
 - `(x1, y1)` is the **source** coordinate (where the piece is).
 - `(x2, y2)` is the **destination** coordinate (where the piece moves to).
 
+### **Special Moves:**
+
+**Castling:**
+- **King-side castling:** `O-O` or `0-0` - King moves to g1/g8, Rook moves to f1/f8
+- **Queen-side castling:** `O-O-O` or `0-0-0` - King moves to c1/c8, Rook moves to d1/d8
+- **Requirements:** King and rook must not have moved, no pieces between them, king not in check
+
+**En Passant:**
+- **Automatic:** When a pawn moves two squares forward, the opponent can capture it en passant
+- **Example:** White plays d2-d4, Black responds with e7-e5, White can capture with d4xe5
+- **Timing:** Only available on the very next move
+
+**Pawn Promotion:**
+- **Automatic:** Pawns automatically promote to Queen when reaching the opposite end
+- **Future enhancement:** Choice of promotion piece (Rook, Bishop, Knight, Queen)
+
 ### **Piece Movement Rules:**
 
 **Pawn (P/p):**
@@ -144,6 +168,7 @@ Where:
 - Captures diagonally forward only
 - White pawns move UP (decreasing row numbers)
 - Black pawns move DOWN (increasing row numbers)
+- **En Passant:** Can capture opponent pawn that just moved two squares
 
 **Knight (N/n):**
 - L-shape movement (2 squares in one direction, 1 perpendicular)
@@ -164,6 +189,7 @@ Where:
 **King (K/k):**
 - Moves 1 square in any direction
 - Cannot move into check
+- **Castling:** Can castle with rook if neither has moved
 
 ### **Special Commands:**
 - `help` or `h` - Show help and commands
@@ -186,6 +212,10 @@ Where:
   ```plaintext
   Nf3
   ```
+- **White kingside castling:**
+  ```plaintext
+  O-O
+  ```
 - **Queen captures on f7:**
   ```plaintext
   Qxf7
@@ -201,9 +231,9 @@ Where:
 - **Stalemate:** When a player has no legal moves but is not in check.
 - **Game Statistics:** Total moves and complete move history are displayed.
 
-### **Testing Checkmate Detection (Scholar's Mate):**
-Try this 7-move sequence to test checkmate detection:
+### **Testing Castling and En Passant:**
 
+**Test Castling (Scholar's Mate with Castling):**
 ```plaintext
 e2 e4    # White pawn to e4
 e7 e5    # Black pawn to e5
@@ -211,10 +241,21 @@ Qh5      # White queen to h5
 Nc6      # Black knight to c6
 Bc4      # White bishop to c4
 Nf6      # Black knight to f6
-Qxf7     # White queen captures on f7 - CHECKMATE!
+O-O      # White kingside castling
 ```
 
-**Expected result:** The game should announce "CHECKMATE! White wins!" and end.
+**Test En Passant:**
+```plaintext
+d2 d4    # White pawn to d4
+e7 e5    # Black pawn to e5
+d4 e5    # White captures pawn
+d7 d5    # Black pawn to d5 (en passant opportunity)
+e5 d6    # White captures en passant
+```
+
+**Expected results:** 
+- Castling should move both king and rook correctly
+- En passant should capture the black pawn on d5
 
 ---
 
@@ -226,19 +267,19 @@ Qxf7     # White queen captures on f7 - CHECKMATE!
 
 - **Derived Classes:**  
   Implement specific rules for each type of piece:  
-  - `Pawn`: Can move forward, capture diagonally, and promote to Queen.
+  - `Pawn`: Can move forward, capture diagonally, promote to Queen, and capture en passant.
   - `Rook`: Moves in straight lines along rows or columns.
   - `Knight`: Moves in an "L" shape.
   - `Bishop`: Moves diagonally.
   - `Queen`: Moves in straight lines and diagonals.
-  - `King`: Moves one square in any direction.
+  - `King`: Moves one square in any direction, can castle with rook.
 
 ### **Game Management:**
 - **Board Class:**  
-  Handles the 8x8 chessboard, including placing pieces, updating board state, printing the current board, check detection, and game state management.
+  Handles the 8x8 chessboard, including placing pieces, updating board state, printing the current board, check detection, game state management, castling validation, and en passant tracking.
 
 - **Game Class:**  
-  Manages the overall game flow, including turns, move validation, switching between players, move history, and user interaction.
+  Manages the overall game flow, including turns, move validation, switching between players, move history, user interaction, and special move parsing.
 
 ## **Technical Implementation Highlights**
 
@@ -251,11 +292,18 @@ Qxf7     # White queen captures on f7 - CHECKMATE!
 - Check detection: O(n²) where n is board size
 - Legal move generation: O(n²) per piece
 - Game state evaluation: O(n²)
+- Castling validation: O(1) with piece movement tracking
+- En passant validation: O(1) with target square tracking
 
 ### **Design Patterns:**
 - **Strategy Pattern:** Different move validation for each piece type
 - **Factory Pattern:** Piece creation and copying
 - **Observer Pattern:** Game state monitoring
+
+### **New Features Implementation:**
+- **Castling:** Piece movement tracking, validation logic, and notation parsing
+- **En Passant:** Target square tracking, automatic detection, and capture logic
+- **Enhanced Move Parsing:** Support for castling notation (O-O, O-O-O)
 
 ### **Resume-Ready Features:**
 - **Object-Oriented Programming:** Complete class hierarchy with inheritance and polymorphism
@@ -263,9 +311,10 @@ Qxf7     # White queen captures on f7 - CHECKMATE!
 - **Algorithm Implementation:** Check detection, legal move generation, game state evaluation
 - **Error Handling:** Comprehensive input validation and error messages
 - **Design Patterns:** Strategy pattern for piece movement, Factory pattern for piece creation
-- **Data Structures:** 2D arrays, vectors, pairs for game state management
+- **Data Structures:** 2D arrays, vectors, pairs, sets for game state management
 - **Game Development:** Complete chess rule implementation with state management
 - **User Interface:** Command-line interface with help system and multiple input formats
+- **Advanced Chess Rules:** Castling and En Passant implementation
 
 ---
 
@@ -325,19 +374,19 @@ Move 1: e2 to e4
     a   b   c   d   e   f   g   h
 
 Black's turn.
-Enter move (e.g., 'e2 e4') or command: e7 e5
+Enter move (e.g., 'e2 e4') or command: O-O
 
-Move 2: e7 to e5
+Move 2: Kingside castling
 
     a   b   c   d   e   f   g   h
   +---+---+---+---+---+---+---+---+
- 8 | r | n | b | q | k | b | n | r | 8
+ 8 | r | n | b | q |   | r | k |   | 8
   +---+---+---+---+---+---+---+---+
- 7 | p | p | p | p |   | p | p | p | 7
+ 7 | p | p | p | p | p | p | p | p | 7
   +---+---+---+---+---+---+---+---+
  6 |   |   |   |   |   |   |   |   | 6
   +---+---+---+---+---+---+---+---+
- 5 |   |   |   |   | p |   |   |   | 5
+ 5 |   |   |   |   |   |   |   |   | 5
   +---+---+---+---+---+---+---+---+
  4 |   |   |   |   | P |   |   |   | 4
   +---+---+---+---+---+---+---+---+
@@ -353,12 +402,14 @@ Move 2: e7 to e5
 ---
 
 ## **Future Improvements**  
-- **Castling and En Passant:** Implement special chess moves.
-- **Undo Feature:** Allow players to undo their last move.
-- **AI Opponent:** Add computer player with different difficulty levels.
-- **Graphical Interface:** Add a GUI to make the game more interactive.
-- **Network Multiplayer:** Enable online play between players.
-- **Game Save/Load:** Persist game state to files.
+- **Pawn Promotion Options:** Allow choice of promotion piece (Rook, Bishop, Knight, Queen)
+- **Undo Feature:** Allow players to undo their last move
+- **AI Opponent:** Add computer player with different difficulty levels
+- **Graphical Interface:** Add a GUI to make the game more interactive
+- **Network Multiplayer:** Enable online play between players
+- **Game Save/Load:** Persist game state to files
+- **Move Timer:** Add time controls for blitz and rapid games
+- **Draw Offers:** Implement draw by agreement, threefold repetition, fifty-move rule
 
 ### **File Structure:**
 ```
@@ -372,7 +423,9 @@ Move 2: e7 to e5
 │   ├── Game.cpp
 │   └── Pieces/      # Piece implementations
 ├── README.md        # This file
-└── chessGame.exe    # Compiled executable
+├── chessGame.exe    # Compiled executable
+├── test_checkmate.txt    # Test file for checkmate
+└── test_castling_enpassant.txt  # Test file for new features
 ```
 
 ---

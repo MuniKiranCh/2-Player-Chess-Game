@@ -9,6 +9,7 @@ public:
 
     bool isValidMove(int x1, int y1, int x2, int y2, const Board& board) const override; // Move logic declaration
     char getSymbol() const override; // Symbol function declaration
+    bool isCastlingMove(int x1, int y1, int x2, int y2) const; // Check if move is castling
 };
 
 #endif // KING_H
